@@ -11,9 +11,7 @@ import { ConfigModule } from '@nestjs/config';
   controllers: [AuthController],
   providers: [AuthService],
   imports: [
-    ConfigModule.forRoot(
-
-    ),
+    ConfigModule.forRoot(),
     MongooseModule.forFeature([
       {
         name: User.name,
@@ -25,7 +23,6 @@ import { ConfigModule } from '@nestjs/config';
       secret: process.env.JWT_SEED,
       signOptions: { expiresIn: '6h' },
     }),
-
   ]
 })
-export class AuthModule {}
+export class AuthModule {};

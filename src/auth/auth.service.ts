@@ -3,15 +3,13 @@ import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcryptjs'
 import { JwtService } from '@nestjs/jwt';
 
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { LoginDTO } from './dto/login.dto';
+import { RegisterUserDto, CreateUserDto, UpdateUserDto, LoginDTO} from './dto';
 
 import { User } from './entities/user.entity';
 import { Model } from 'mongoose';
 
-
 import { JwtPayload } from './interfaces/jwt-payload';
+import { LoginResponse } from './interfaces/login-response';
 
 
 @Injectable()
@@ -26,8 +24,6 @@ export class AuthService {
 
   async create(createUserDto: CreateUserDto):  Promise<User> {
 
-    // const newUser = new this.userModel( createUserDto );
-    // return newUser.save();
     try {
       const { password, ...userData } = createUserDto;
       const newUser = new this.userModel({
@@ -35,7 +31,8 @@ export class AuthService {
         ...userData
       });
       await newUser.save();
-      const { password:_, ...user } = newUser.toJSON()
+      const { password:_, ...user } = newUser.toJSON();
+      console.log('Create',user);
       return user;
     } catch (error) {
       console.log('ERROR',error);
@@ -46,7 +43,15 @@ export class AuthService {
     }
   };
 
-  async login( loginDTO: LoginDTO ) {
+  async register(registerTDO: RegisterUserDto): Promise<LoginResponse>{
+    const user = await this.create(registerTDO);
+     return {
+      user,
+      token: this.getJwtToken({ id: user._id })
+    };
+  };
+
+  async login( loginDTO: LoginDTO ): Promise<LoginResponse> {
     const { email, password } = loginDTO;
     const user = await this.userModel.findOne({ email })
     if ( !user ) {
@@ -57,23 +62,21 @@ export class AuthService {
     };
 
     const { password:_, ...rest } = user.toJSON();
-    // User { _id, name, email, roles... }
     return {
       user: rest,
       token: this.getJwtToken({ id: user.id })
-    }
-    /**
-     * User { _id, name, email, roles... }
-     * Token -> 89SDNSND.DNDJDJDJD.DKDNDND
-     */
+    };
   };
 
-  findAll() {
-    return `This action returns all auth`;
+  async findAll(): Promise<User[]> {
+    const users = await this.userModel.find();
+    return users;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} auth`;
+  findOne(id: number): Promise<User>{
+    console.log(id);
+    
+    return this.userModel.findById( id );
   }
 
   update(id: number, updateAuthDto: UpdateUserDto) {
