@@ -32,7 +32,6 @@ export class AuthService {
       });
       await newUser.save();
       const { password:_, ...user } = newUser.toJSON();
-      console.log('Create',user);
       return user;
     } catch (error) {
       console.log('ERROR',error);
